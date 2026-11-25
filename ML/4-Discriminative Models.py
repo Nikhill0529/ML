@@ -1,0 +1,368 @@
+4a. Logistic Regression (accuracy, precision, recall, ROC curve) 
+# Import necessary libraries 
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt 
+import seaborn as sns
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split 
+from sklearn.preprocessing import StandardScaler 
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_curve, auc
+# Load the diabetes dataset 
+diabetes = load_diabetes()
+X, y = diabetes.data, diabetes.target
+# Convert the target variable to binary (1 for diabetes, 0 for no diabetes) 
+y_binary = (y > np.median(y)).astype(int)
+# Split the data into training and testing sets 
+X_train, X_test, y_train, y_test = train_test_split( 
+X, y_binary, test_size=0.2, random_state=42)
+# Standardize features 
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train) 
+X_test = scaler.transform(X_test)
+# Train the Logistic Regression model 
+model = LogisticRegression() 
+model.fit(X_train, y_train)
+# Evaluate the model
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy: {:.2f}%".format(accuracy * 100)) 
+# evaluate the model
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred)) 
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+
+
+# Visualize the decision boundary with accuracy information 
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=X_test[:, 2], y=X_test[:, 8], hue=y_test, palette={
+    0: 'blue', 1: 'red'}, marker='o') 
+plt.xlabel("BMI")
+plt.ylabel("Age")
+plt.title("Logistic Regression Decision Boundary\nAccuracy: {:.2f}%".format(
+    accuracy * 100))
+plt.legend(title="Diabetes", loc="upper right") 
+plt.show()
+
+
+
+# Plot ROC Curve
+y_prob = model.predict_proba(X_test)[:, 1]
+fpr, tpr, thresholds = roc_curve(y_test, y_prob) 
+roc_auc = auc(fpr, tpr)
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, color='darkorange', lw=2,
+         label=f'ROC Curve (AUC = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--', label='Random') 
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve\nAccuracy: {:.2f}%'.format(
+    accuracy * 100))
+plt.legend(loc="lower right") 
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+4b. k-Nearest Neighbor 
+
+# Import necessary modules
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn.model_selection import train_test_split 
+from sklearn.datasets import load_iris
+# Loading data 
+irisData = load_iris()
+# Create feature and target arrays 
+X = irisData.data
+y = irisData.target
+# Split into training and test set
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size = 0.2, random_state=42)
+knn = KNeighborsClassifier(n_neighbors=7) 
+knn.fit(X_train, y_train)
+# Predict on dataset which model has not seen before 
+print(knn.predict(X_test))
+[1 0 2 1 1 0 1 2 2 1 2 0 0 0 0 1 2 1 1 2 0 2 0 2 2 2 2 2 0 0]
+# Import necessary modules
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn.model_selection import train_test_split 
+from sklearn.datasets import load_iris
+# Loading data
+irisData = load_iris()
+# Create feature and target arrays 
+X = irisData.data
+y = irisData.target
+# Split into training and test set
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size = 0.2, random_state=42)
+knn = KNeighborsClassifier(n_neighbors=7) 
+knn.fit(X_train, y_train)
+# Calculate the accuracy of the model 
+print(knn.score(X_test, y_test)) 
+0.9666666666666667
+# Import necessary modules
+from sklearn.neighbors import KNeighborsClassifier 
+from sklearn.model_selection import train_test_split 
+from sklearn.datasets import load_iris
+import numpy as np
+import matplotlib.pyplot as plt 
+irisData = load_iris()
+# Create feature and target arrays 
+X = irisData.data
+y = irisData.target
+# Split into training and test set
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size = 0.2, random_state=42)
+neighbors = np.arange(1, 9) 
+train_accuracy = np.empty(len(neighbors)) 
+test_accuracy = np.empty(len(neighbors)) 
+# Loop over K values
+for i, k in enumerate(neighbors):
+    knn = KNeighborsClassifier(n_neighbors=k) 
+    knn.fit(X_train, y_train)
+    # Compute training and test data accuracy 
+    train_accuracy[i] = knn.score(X_train, y_train) 
+    test_accuracy[i] = knn.score(X_test, y_test)
+# Generate plot
+plt.plot(neighbors, test_accuracy, label = 'Testing dataset Accuracy') 
+plt.plot(neighbors, train_accuracy, label = 'Training dataset Accuracy') 
+plt.legend()
+plt.xlabel('n_neighbors') 
+plt.ylabel('Accuracy') 
+plt.show()
+
+
+
+
+
+
+
+
+
+4c. Decision Tree (hyperparameter tuning: Grid, Random, Bayesian)  
+
+from sklearn.datasets import fetch_california_housing 
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import mean_squared_error
+from bayes_opt import BayesianOptimization 
+data = fetch_california_housing()
+X, y = data.data, data.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) 
+# Define the parameter grid to tune the hyperparameters
+param_grid = {
+    'max_depth': [10, 20, 30, None],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+dtree_reg = DecisionTreeRegressor(random_state=42)
+# Initialize a decision tree regressor
+grid_search = GridSearchCV(estimator=dtree_reg, param_grid=param_grid,
+                           cv=5, n_jobs=-1, verbose=2, scoring='neg_mean_squared_error') 
+grid_search.fit(X_train, y_train)
+best_dtree_reg = grid_search.best_estimator_
+# Get the best estimator from the grid search
+y_pred = best_dtree_reg.predict(X_test) 
+mse = mean_squared_error(y_test, y_pred) 
+rmse = mse ** 0.5
+best_params = grid_search.best_params_ 
+print(f"Best parameters: {best_params}") 
+print(f"Test RMSE: {rmse}")
+
+
+
+# Define the parameter distribution to sample from 
+param_dist = {
+    'max_depth': randint(1, 20),
+    'min_samples_split': randint(2, 20),
+    'min_samples_leaf': randint(1, 20)
+}
+dtree_reg = DecisionTreeRegressor(random_state=42)
+random_search = RandomizedSearchCV(dtree_reg,
+                                   param_distributions=param_dist,
+                                   n_iter=100, cv=5, random_state=42)
+random_search.fit(X_train, y_train)
+best_params_random = random_search.best_params_ 
+best_score_random = random_search.best_score_
+print(f"Best Parameters (Random Search): {best_params_random}") 
+print(f"Best Score (Random Search): {best_score_random}")
+
+
+# Define the function to optimize using cross-validation
+def dtree_cv(max_depth, min_samples_split, min_samples_leaf):
+    # Define the model with the parameters to be optimized 
+    estimator = DecisionTreeRegressor(
+        max_depth=int(max_depth), 
+        min_samples_split=int(min_samples_split), 
+        min_samples_leaf=int(min_samples_leaf), 
+        random_state=2
+    )
+    cval = cross_val_score(estimator, X_train, y_train,
+                           scoring='neg_mean_squared_error', cv=5)
+    return cval.mean()
+# The optimizer tries to maximize the function, so we negate the score to minimize it
+# Define the parameter bounds 
+param_bounds = {
+    'max_depth': (1, 20),
+    'min_samples_split': (2, 20),
+    'min_samples_leaf': (1, 20)
+}
+optimizer = BayesianOptimization(
+    f=dtree_cv,
+    pbounds=param_bounds,
+    random_state=1,
+)
+optimizer.maximize(n_iter=25, init_points=5) # Bayesian optimization 
+best_params_bayes = optimizer.max['params'] 
+best_params_bayes['max_depth'] = int(best_params_bayes['max_depth'])
+best_params_bayes['min_samples_split'] =
+int(best_params_bayes['min_samples_split']) 
+best_params_bayes['min_samples_leaf'] =
+int(best_params_bayes['min_samples_leaf']) 
+best_score_bayes = optimizer.max['target']
+print(f"Best Parameters (Bayesian Optimization): {best_params_bayes}") 
+print(f"Best Score (Bayesian Optimization): {best_score_bayes}")
+
+
+
+
+
+4.4. Implement a Support Vector Machine for any relevant dataset
+
+# Load the important packages
+from sklearn.datasets import load_breast_cancer 
+import matplotlib.pyplot as plt
+from sklearn.inspection import DecisionBoundaryDisplay 
+from sklearn.svm import SVC
+# Load the datasets
+cancer = load_breast_cancer() 
+X = cancer.data[:, :2]
+y = cancer.target 
+#Build the model
+svm = SVC(kernel="rbf", gamma=0.5, C=1.0)
+# Trained the model 
+svm.fit(X, y)
+# Plot Decision Boundary 
+DecisionBoundaryDisplay.from_estimator(
+    svm,
+    X,
+    response_method="predict", 
+    cmap=plt.cm.Spectral,
+    alpha=0.8, 
+    xlabel=cancer.feature_names[0], 
+    ylabel=cancer.feature_names[1],
+)
+# Scatter plot 
+plt.scatter(X[:, 0], X[:, 1],
+            c=y,
+            s=20, edgecolors="k") 
+plt.show()
+
+
+
+
+
+
+
+
+
+
+4.5 Train a random forest ensemble. Experiment with the number of trees and feature sampling. Compare performance to a single decision tree.
+
+import numpy as np 
+import pandas as pd
+from sklearn import datasets
+from sklearn.model_selection import train_test_split 
+from sklearn.ensemble import RandomForestClassifier 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score 
+import matplotlib.pyplot as plt
+# Load the Iris dataset 
+iris = datasets.load_iris()
+X = iris.data 
+y = iris.target
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) 
+# Train a single Decision Tree
+decision_tree = DecisionTreeClassifier(random_state=42) 
+decision_tree.fit(X_train, y_train)
+# Make predictions with the Decision Tree 
+y_pred_tree = decision_tree.predict(X_test) 
+# Evaluate the Decision Tree 
+print("Decision Tree Performance:")
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_tree))
+print("\nClassification Report:\n", classification_report(y_test, y_pred_tree)) 
+print("Accuracy Score:", accuracy_score(y_test, y_pred_tree))
+# Train Random Forests with different numbers of trees 
+n_trees = [5, 10, 50, 100]
+accuracies = [] 
+for n in n_trees:
+    random_forest = RandomForestClassifier(n_estimators=n, random_state=42,
+                                           max_features='sqrt') # feature sampling
+    random_forest.fit(X_train, y_train) 
+    y_pred_forest = random_forest.predict(X_test)
+    accuracies.append(accuracy_score(y_test, y_pred_forest)) 
+    print(f"\nRandom Forest with {n} Trees Performance:") 
+    print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred_forest))
+    print("\nClassification Report:\n", classification_report(y_test, y_pred_forest)) 
+    print("Accuracy Score:", accuracy_score(y_test, y_pred_forest))
+# Plotting accuracies 
+plt.figure(figsize=(10, 5))
+plt.plot(n_trees, accuracies, marker='o', linestyle='-', color='b') 
+plt.title('Random Forest Accuracy vs. Number of Trees') 
+plt.xlabel('Number of Trees')
+plt.ylabel('Accuracy') 
+plt.xticks(n_trees) 
+plt.grid()
+plt.axhline(y=accuracy_score(y_test, y_pred_tree), color='r', linestyle='--', 
+label='Decision Tree Accuracy')
+plt.legend() 
+plt.show()
+
+
+
+
+
+
+
+
+4.6 Implement a gradient boosting machine (e.g., XGBoost). Tune hyperparameters and explore feature importance.
+
+from sklearn.metrics import accuracy_score 
+import xgboost as xgb
+from sklearn.model_selection import train_test_split 
+import numpy as np
+import matplotlib.pyplot as plt 
+import pandas as pd
+dataset = pd.read_csv('Churn_Modelling.csv')
+X = dataset.iloc[:, 3:13].values 
+y = dataset.iloc[:, 13].values 
+import pandas as pd
+# Assuming 'dataset' is the original DataFrame from pd.read_csv 
+X = dataset.iloc[:, 3:13] # Keep X as a DataFrame
+# Now you can use column names for astype 
+X['Geography'] = X['Geography'].astype('category') 
+X['Gender'] = X['Gender'].astype('category')
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.25, random_state=0) 
+xgb_train = xgb.DMatrix(X_train, y_train, enable_categorical=True)
+xgb_test = xgb.DMatrix(X_test, y_test, enable_categorical=True) 
+n=50
+params = {
+    'objective': 'binary:logistic',
+    'max_depth': 3,
+    'learning_rate': 0.1,
+}
+model = xgb.train(params=params,dtrain=xgb_train,num_boost_round=n) 
+preds = model.predict(xgb_test)
+preds = preds.astype(int)
+accuracy= accuracy_score(y_test,preds) 
+print('Accuracy of the model is:', accuracy*100)
